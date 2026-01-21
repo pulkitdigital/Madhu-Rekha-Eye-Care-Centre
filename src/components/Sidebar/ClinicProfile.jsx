@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Building2, Loader, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function ClinicProfile() {
   const [profile, setProfile] = useState(null);
@@ -16,7 +16,7 @@ function ClinicProfile() {
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get(`${API_URL}/clinic-profile`);
+      const response = await axios.get(`${API_URL}/api/clinic-profile`);
       if (response.data.success) {
         setProfile(response.data.data);
       }

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Save, AlertCircle, Loader, RefreshCw, Edit, X } from "lucide-react";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function ClinicProfileSetup() {
   const [profileData, setProfileData] = useState({
@@ -41,10 +41,10 @@ function ClinicProfileSetup() {
     setLoading(true);
     try {
       console.log("🔍 Checking if profile exists...");
-      console.log("API URL:", `${API_URL}/clinic-profile/exists`);
+      console.log("API URL:", `${API_URL}/api/clinic-profile/exists`);
 
       const existsResponse = await axios.get(
-        `${API_URL}/clinic-profile/exists`,
+        `${API_URL}/api/clinic-profile/exists`,
       );
       console.log("Exists response:", existsResponse.data);
 
@@ -53,7 +53,7 @@ function ClinicProfileSetup() {
         setIsEditMode(false); // ✅ Disable edit mode when loading
         console.log("📥 Loading existing profile...");
 
-        const response = await axios.get(`${API_URL}/clinic-profile`);
+        const response = await axios.get(`${API_URL}/api/clinic-profile`);
         console.log("Profile data:", response.data);
 
         if (response.data.success) {
@@ -116,11 +116,11 @@ function ClinicProfileSetup() {
 
     try {
       console.log("💾 Saving profile...");
-      console.log("API URL:", `${API_URL}/clinic-profile`);
+      console.log("API URL:", `${API_URL}/api/clinic-profile`);
       console.log("Profile data:", profileData);
 
       const response = await axios.post(
-        `${API_URL}/clinic-profile`,
+        `${API_URL}/api/clinic-profile`,
         profileData,
       );
       console.log("Save response:", response.data);

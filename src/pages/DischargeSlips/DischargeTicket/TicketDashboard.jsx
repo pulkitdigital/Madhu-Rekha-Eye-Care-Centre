@@ -363,7 +363,7 @@ import { useState, useEffect } from 'react';
 import { FileText, Calendar, CheckCircle, Clock, TrendingUp, Eye, Download } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function TicketDashboard() {
   const [stats, setStats] = useState({
@@ -387,14 +387,14 @@ function TicketDashboard() {
     
     try {
       // Fetch dashboard statistics
-      const statsResponse = await axios.get(`${API_URL}/discharge-slips/discharge-ticket/stats/dashboard`);
+      const statsResponse = await axios.get(`${API_URL}/api/discharge-slips/discharge-ticket/stats/dashboard`);
       
       if (statsResponse.data.success) {
         setStats(statsResponse.data.data);
       }
 
       // Fetch recent tickets (limit to 5)
-      const ticketsResponse = await axios.get(`${API_URL}/discharge-slips/discharge-ticket`, {
+      const ticketsResponse = await axios.get(`${API_URL}/api/discharge-slips/discharge-ticket`, {
         params: { limit: 5, offset: 0 }
       });
       
@@ -411,7 +411,7 @@ function TicketDashboard() {
 
   const handleView = async (ticketId) => {
     try {
-      const response = await axios.get(`${API_URL}/discharge-slips/discharge-ticket/${encodeURIComponent(ticketId)}`);
+      const response = await axios.get(`${API_URL}/api/discharge-slips/discharge-ticket/${encodeURIComponent(ticketId)}`);
       if (response.data.success) {
         alert('View functionality - Ticket ID: ' + ticketId);
       }
@@ -429,7 +429,7 @@ function TicketDashboard() {
       console.log("📥 Downloading PDF for ticket:", ticket.ticketId);
 
       const response = await axios.get(
-        `${API_URL}/discharge-slips/discharge-ticket/${encodeURIComponent(ticket.ticketId)}/pdf`,
+        `${API_URL}/api/discharge-slips/discharge-ticket/${encodeURIComponent(ticket.ticketId)}/pdf`,
         {
           responseType: "blob",
           timeout: 30000,

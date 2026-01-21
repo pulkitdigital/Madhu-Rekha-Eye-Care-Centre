@@ -11,7 +11,7 @@ import {
 import axios from "axios";
 import EditSummary from "./EditSummary";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 function AllSummaries() {
   const [summaries, setSummaries] = useState([]);
@@ -61,11 +61,11 @@ function AllSummaries() {
     try {
       console.log(
         "🔍 Fetching summaries from:",
-        `${API_URL}/discharge-slips/discharge-summary`,
+        `${API_URL}/api/discharge-slips/discharge-summary`,
       );
 
       const response = await axios.get(
-        `${API_URL}/discharge-slips/discharge-summary`,
+        `${API_URL}/api/discharge-slips/discharge-summary`,
       );
 
       console.log("📦 API Response:", response.data);
@@ -116,7 +116,7 @@ function AllSummaries() {
       console.log("🔐 Encoded ID:", encodedId);
 
       const response = await axios.get(
-        `${API_URL}/discharge-slips/discharge-summary/${encodedId}`,
+        `${API_URL}/api/discharge-slips/discharge-summary/${encodedId}`,
       );
 
       if (response.data.success) {
@@ -142,7 +142,7 @@ function AllSummaries() {
       console.log("🔐 Encoded ID:", encodedId);
 
       const response = await axios.get(
-        `${API_URL}/discharge-slips/discharge-summary/${encodedId}`,
+        `${API_URL}/api/discharge-slips/discharge-summary/${encodedId}`,
       );
 
       if (response.data.success) {
@@ -194,7 +194,7 @@ function AllSummaries() {
       console.log("🔐 Encoded ID:", encodedId);
 
       const response = await axios.delete(
-        `${API_URL}/discharge-slips/discharge-summary/${encodedId}`,
+        `${API_URL}/api/discharge-slips/discharge-summary/${encodedId}`,
       );
 
       if (response.data.success) {
@@ -212,73 +212,13 @@ function AllSummaries() {
     }
   };
 
-  // ✅ PDF download already works correctly (has /pdf suffix)
-  // const handleDownloadPDF = async (summary) => {
-  //   setDownloadingPDF(summary.summaryId);
-
-  //   try {
-  //     console.log("📥 Downloading PDF for summary:", summary.summaryId);
-
-  //     const response = await axios.get(
-  //       `${API_URL}/discharge-slips/discharge-summary/${summary.summaryId}/pdf`,
-  //       {
-  //         responseType: "blob",
-  //         timeout: 30000,
-  //       },
-  //     );
-
-  //     console.log("✅ PDF received from backend");
-  //     console.log("📦 Response type:", response.headers["content-type"]);
-  //     console.log("📦 Response size:", response.data.size, "bytes");
-
-  //     const blob = new Blob([response.data], { type: "application/pdf" });
-  //     const url = window.URL.createObjectURL(blob);
-  //     const link = document.createElement("a");
-  //     link.href = url;
-  //     link.download = `DischargeSummary-${summary.summaryId}-${summary.patientName.replace(/\s+/g, "_")}.pdf`;
-
-  //     document.body.appendChild(link);
-  //     link.click();
-
-  //     document.body.removeChild(link);
-  //     window.URL.revokeObjectURL(url);
-
-  //     console.log("✅ PDF downloaded successfully");
-  //   } catch (err) {
-  //     console.error("❌ Error downloading PDF:", err);
-
-  //     let errorMessage = "Failed to download PDF";
-
-  //     if (err.response) {
-  //       if (err.response.data instanceof Blob) {
-  //         const text = await err.response.data.text();
-  //         try {
-  //           const errorData = JSON.parse(text);
-  //           errorMessage = errorData.message || errorMessage;
-  //         } catch {
-  //           errorMessage = text || errorMessage;
-  //         }
-  //       } else {
-  //         errorMessage = err.response.data?.message || errorMessage;
-  //       }
-  //     } else if (err.code === "ECONNABORTED") {
-  //       errorMessage = "PDF generation timeout. Please try again.";
-  //     } else {
-  //       errorMessage = err.message || errorMessage;
-  //     }
-
-  //     alert(errorMessage);
-  //   } finally {
-  //     setDownloadingPDF(null);
-  //   }
-  // };
   const handleDownloadPDF = async (summary) => {
     try {
       console.log("🖨️ Printing summary:", summary.summaryId);
 
       const encodedId = encodeURIComponent(summary.summaryId);
       const response = await axios.get(
-        `${API_URL}/discharge-slips/discharge-summary/${encodedId}/pdf`,
+        `${API_URL}/api/discharge-slips/discharge-summary/${encodedId}/pdf`,
         {
           responseType: "blob",
           timeout: 30000,

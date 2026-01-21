@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Save } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function CreateSummary() {
   const [formData, setFormData] = useState({
@@ -46,7 +46,7 @@ function CreateSummary() {
 
     try {
       const response = await axios.post(
-        `${API_URL}/discharge-slips/discharge-summary`,
+        `${API_URL}/api/discharge-slips/discharge-summary`,
         formData
       );
 

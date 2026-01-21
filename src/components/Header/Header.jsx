@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Building2 } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function Header({ sidebarOpen, setSidebarOpen }) {
   const [clinicName, setClinicName] = useState('Hospital Management System');
@@ -15,7 +15,7 @@ function Header({ sidebarOpen, setSidebarOpen }) {
 
   const fetchClinicProfile = async () => {
     try {
-      const response = await axios.get(`${API_URL}/clinic-profile`);
+      const response = await axios.get(`${API_URL}/api/clinic-profile`);
       if (response.data.success) {
         const profile = response.data.data;
         setClinicName(profile.clinicName || 'Hospital Management System');
