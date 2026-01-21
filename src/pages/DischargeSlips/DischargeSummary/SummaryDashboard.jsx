@@ -1,0 +1,758 @@
+// import { useState, useEffect } from 'react';
+// import { FileText, Calendar, CheckCircle, Clock, TrendingUp, Eye, Download } from 'lucide-react';
+// import axios from 'axios';
+
+// const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+// function SummaryDashboard() {
+//   const [stats, setStats] = useState({
+//     totalSummaries: 0,
+//     todaySummaries: 0,
+//     completedSummaries: 0,
+//     pendingSummaries: 0
+//   });
+//   const [recentSummaries, setRecentSummaries] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [downloadingPDF, setDownloadingPDF] = useState(null);
+
+//   useEffect(() => {
+//     fetchDashboardData();
+//   }, []);
+
+//   const fetchDashboardData = async () => {
+//     setLoading(true);
+//     setError(null);
+
+//     try {
+//       // Fetch dashboard statistics
+//       const statsResponse = await axios.get(`${API_URL}/discharge-slips/discharge-summary/stats/dashboard`);
+
+//       if (statsResponse.data.success) {
+//         setStats(statsResponse.data.data);
+//       }
+
+//       // Fetch recent summaries (limit to 5)
+//       const summariesResponse = await axios.get(`${API_URL}/discharge-slips/discharge-summary`, {
+//         params: { limit: 5, offset: 0 }
+//       });
+
+//       if (summariesResponse.data.success) {
+//         setRecentSummaries(summariesResponse.data.data);
+//       }
+//     } catch (err) {
+//       console.error('Error fetching dashboard data:', err);
+//       setError(err.response?.data?.message || 'Failed to fetch dashboard data');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleView = async (summaryId) => {
+//     try {
+//       const response = await axios.get(`${API_URL}/discharge-slips/discharge-summary/${summaryId}`);
+//       if (response.data.success) {
+//         alert('View functionality - Summary ID: ' + summaryId);
+//       }
+//     } catch (err) {
+//       console.error('Error fetching summary:', err);
+//       alert('Failed to fetch summary details');
+//     }
+//   };
+
+//   // Backend PDF Download - Same as AllSummaries
+//   const handleDownloadPDF = async (summary) => {
+//     setDownloadingPDF(summary.summaryId);
+
+//     try {
+//       console.log("📥 Downloading PDF for summary:", summary.summaryId);
+
+//       const response = await axios.get(
+//         `${API_URL}/discharge-slips/discharge-summary/${summary.summaryId}/pdf`,
+//         {
+//           responseType: "blob",
+//           timeout: 30000,
+//         },
+//       );
+
+//       console.log("✅ PDF received from backend");
+
+//       const blob = new Blob([response.data], { type: "application/pdf" });
+//       const url = window.URL.createObjectURL(blob);
+//       const link = document.createElement("a");
+//       link.href = url;
+//       link.download = `DischargeSummary-${summary.summaryId}-${summary.patientName.replace(/\s+/g, "_")}.pdf`;
+
+//       document.body.appendChild(link);
+//       link.click();
+
+//       document.body.removeChild(link);
+//       window.URL.revokeObjectURL(url);
+
+//       console.log("✅ PDF downloaded successfully");
+//     } catch (err) {
+//       console.error("❌ Error downloading PDF:", err);
+
+//       let errorMessage = "Failed to download PDF";
+
+//       if (err.response) {
+//         if (err.response.data instanceof Blob) {
+//           const text = await err.response.data.text();
+//           try {
+//             const errorData = JSON.parse(text);
+//             errorMessage = errorData.message || errorMessage;
+//           } catch {
+//             errorMessage = text || errorMessage;
+//           }
+//         } else {
+//           errorMessage = err.response.data?.message || errorMessage;
+//         }
+//       } else if (err.code === "ECONNABORTED") {
+//         errorMessage = "PDF generation timeout. Please try again.";
+//       } else {
+//         errorMessage = err.message || errorMessage;
+//       }
+
+//       alert(errorMessage);
+//     } finally {
+//       setDownloadingPDF(null);
+//     }
+//   };
+
+//   const statsConfig = [
+//     {
+//       label: 'Total Summaries',
+//       value: stats.totalSummaries,
+//       icon: FileText,
+//       color: 'blue',
+//       bgGradient: 'from-blue-500 to-blue-600'
+//     },
+//     {
+//       label: "Today's Summaries",
+//       value: stats.todaySummaries,
+//       icon: Calendar,
+//       color: 'green',
+//       bgGradient: 'from-green-500 to-green-600'
+//     },
+//     {
+//       label: 'Completed',
+//       value: stats.completedSummaries,
+//       icon: CheckCircle,
+//       color: 'purple',
+//       bgGradient: 'from-purple-500 to-purple-600'
+//     },
+//     {
+//       label: 'Pending',
+//       value: stats.pendingSummaries,
+//       icon: Clock,
+//       color: 'orange',
+//       bgGradient: 'from-orange-500 to-orange-600'
+//     },
+//   ];
+
+//   if (loading) {
+//     return (
+//       <div className="text-center py-12">
+//         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+//         <p className="mt-2 text-gray-600">Loading dashboard...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div>
+//       <div className="flex items-center justify-between mb-6">
+//         <h3 className="text-xl font-bold text-gray-800">Discharge Summary Dashboard</h3>
+//         <button
+//           onClick={fetchDashboardData}
+//           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+//         >
+//           <TrendingUp className="w-4 h-4" />
+//           <span>Refresh</span>
+//         </button>
+//       </div>
+
+//       {error && (
+//         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+//           {error}
+//         </div>
+//       )}
+
+//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+//         {statsConfig.map((stat, index) => (
+//           <div
+//             key={index}
+//             className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
+//           >
+//             <div className={`bg-gradient-to-r ${stat.bgGradient} p-4`}>
+//               <div className="flex items-center justify-between">
+//                 <div className="flex-1">
+//                   <p className="text-white text-opacity-90 text-sm font-medium">{stat.label}</p>
+//                   <p className="text-white text-3xl font-bold mt-2">{stat.value}</p>
+//                 </div>
+//                 <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+//                   <stat.icon className="w-6 h-6 text-white" />
+//                 </div>
+//               </div>
+//             </div>
+//             <div className="px-4 py-2 bg-gray-50">
+//               <div className="flex items-center text-xs text-gray-600">
+//                 <TrendingUp className="w-3 h-3 mr-1" />
+//                 <span>Updated just now</span>
+//               </div>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+//         <div className="p-4 border-b border-gray-200">
+//           <h4 className="text-lg font-semibold text-gray-800">Recent Discharge Summaries</h4>
+//           <p className="text-sm text-gray-600 mt-1">Last 5 discharge summaries</p>
+//         </div>
+
+//         <div className="overflow-x-auto">
+//           <table className="w-full">
+//             <thead className="bg-gray-50">
+//               <tr>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Summary ID</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Patient Name</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Age/Sex</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Diagnosis</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Procedure Date</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+//                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {recentSummaries.length > 0 ? (
+//                 recentSummaries.map((summary) => (
+//                   <tr key={summary.summaryId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+//                     <td className="py-3 px-4 text-sm font-medium text-blue-600">{summary.summaryId}</td>
+//                     <td className="py-3 px-4 text-sm text-gray-800 font-medium">{summary.patientName}</td>
+//                     <td className="py-3 px-4 text-sm text-gray-600">{summary.age}/{summary.sex}</td>
+//                     <td className="py-3 px-4 text-sm text-gray-600">
+//                       {summary.diagnosis || 'N/A'}
+//                     </td>
+//                     <td className="py-3 px-4 text-sm text-gray-600">{summary.procedureDate || 'N/A'}</td>
+//                     <td className="py-3 px-4">
+//                       <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+//                         summary.status === 'Completed'
+//                           ? 'bg-green-100 text-green-700'
+//                           : 'bg-orange-100 text-orange-700'
+//                       }`}>
+//                         {summary.status}
+//                       </span>
+//                     </td>
+//                     <td className="py-3 px-4">
+//                       <div className="flex space-x-2">
+//                         <button
+//                           onClick={() => handleView(summary.summaryId)}
+//                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+//                           title="View Details"
+//                         >
+//                           <Eye className="w-4 h-4" />
+//                         </button>
+//                         {/* Backend PDF Download */}
+//                         <button
+//                           onClick={() => handleDownloadPDF(summary)}
+//                           className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors relative"
+//                           title="Download PDF"
+//                           disabled={downloadingPDF === summary.summaryId}
+//                         >
+//                           {downloadingPDF === summary.summaryId ? (
+//                             <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+//                           ) : (
+//                             <Download className="w-4 h-4" />
+//                           )}
+//                         </button>
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))
+//               ) : (
+//                 <tr>
+//                   <td colSpan="7" className="py-8 text-center text-gray-500">
+//                     No recent summaries found
+//                   </td>
+//                 </tr>
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       </div>
+
+//       {/* Quick Stats Summary */}
+//       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+//         <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+//           <h5 className="text-sm font-semibold text-indigo-800 mb-2">Completion Rate</h5>
+//           <p className="text-2xl font-bold text-indigo-900">
+//             {stats.totalSummaries > 0
+//               ? Math.round((stats.completedSummaries / stats.totalSummaries) * 100)
+//               : 0}%
+//           </p>
+//           <p className="text-xs text-indigo-600 mt-1">
+//             {stats.completedSummaries} of {stats.totalSummaries} summaries completed
+//           </p>
+//         </div>
+
+//         <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200">
+//           <h5 className="text-sm font-semibold text-amber-800 mb-2">Pending Rate</h5>
+//           <p className="text-2xl font-bold text-amber-900">
+//             {stats.totalSummaries > 0
+//               ? Math.round((stats.pendingSummaries / stats.totalSummaries) * 100)
+//               : 0}%
+//           </p>
+//           <p className="text-xs text-amber-600 mt-1">
+//             {stats.pendingSummaries} summaries awaiting completion
+//           </p>
+//         </div>
+
+//         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+//           <h5 className="text-sm font-semibold text-emerald-800 mb-2">Today's Activity</h5>
+//           <p className="text-2xl font-bold text-emerald-900">{stats.todaySummaries}</p>
+//           <p className="text-xs text-emerald-600 mt-1">
+//             New summaries created today
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// export default SummaryDashboard;
+
+import { useState, useEffect } from "react";
+import {
+  FileText,
+  Calendar,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Eye,
+  Download,
+} from "lucide-react";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+function SummaryDashboard() {
+  const [stats, setStats] = useState({
+    totalSummaries: 0,
+    todaySummaries: 0,
+    completedSummaries: 0,
+    pendingSummaries: 0,
+  });
+  const [recentSummaries, setRecentSummaries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [downloadingPDF, setDownloadingPDF] = useState(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Fetch dashboard statistics
+      const statsResponse = await axios.get(
+        `${API_URL}/discharge-slips/discharge-summary/stats/dashboard`,
+      );
+
+      if (statsResponse.data.success) {
+        setStats(statsResponse.data.data);
+      }
+
+      // Fetch recent summaries (limit to 5)
+      const summariesResponse = await axios.get(
+        `${API_URL}/discharge-slips/discharge-summary`,
+        {
+          params: { limit: 5, offset: 0 },
+        },
+      );
+
+      if (summariesResponse.data.success) {
+        setRecentSummaries(summariesResponse.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+      setError(err.response?.data?.message || "Failed to fetch dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Added URL encoding
+  const handleView = async (summaryId) => {
+    try {
+      console.log("👁️ Viewing summary:", summaryId);
+
+      // ✅ FIX: Encode the ID to handle forward slashes
+      const encodedId = encodeURIComponent(summaryId);
+      console.log("🔐 Encoded ID:", encodedId);
+
+      const response = await axios.get(
+        `${API_URL}/discharge-slips/discharge-summary/${encodedId}`,
+      );
+
+      if (response.data.success) {
+        alert("View functionality - Summary ID: " + summaryId);
+      }
+    } catch (err) {
+      console.error("Error fetching summary:", err);
+      alert(
+        "Failed to fetch summary details: " +
+          (err.response?.data?.message || err.message),
+      );
+    }
+  };
+
+  // ✅ PDF download works correctly (has /pdf suffix)
+  // const handleDownloadPDF = async (summary) => {
+  //   setDownloadingPDF(summary.summaryId);
+
+  //   try {
+  //     console.log("📥 Downloading PDF for summary:", summary.summaryId);
+
+  //     const response = await axios.get(
+  //       `${API_URL}/discharge-slips/discharge-summary/${summary.summaryId}/pdf`,
+  //       {
+  //         responseType: "blob",
+  //         timeout: 30000,
+  //       },
+  //     );
+
+  //     console.log("✅ PDF received from backend");
+
+  //     const blob = new Blob([response.data], { type: "application/pdf" });
+  //     const url = window.URL.createObjectURL(blob);
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     link.download = `DischargeSummary-${summary.summaryId}-${summary.patientName.replace(/\s+/g, "_")}.pdf`;
+
+  //     document.body.appendChild(link);
+  //     link.click();
+
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(url);
+
+  //     console.log("✅ PDF downloaded successfully");
+  //   } catch (err) {
+  //     console.error("❌ Error downloading PDF:", err);
+
+  //     let errorMessage = "Failed to download PDF";
+
+  //     if (err.response) {
+  //       if (err.response.data instanceof Blob) {
+  //         const text = await err.response.data.text();
+  //         try {
+  //           const errorData = JSON.parse(text);
+  //           errorMessage = errorData.message || errorMessage;
+  //         } catch {
+  //           errorMessage = text || errorMessage;
+  //         }
+  //       } else {
+  //         errorMessage = err.response.data?.message || errorMessage;
+  //       }
+  //     } else if (err.code === "ECONNABORTED") {
+  //       errorMessage = "PDF generation timeout. Please try again.";
+  //     } else {
+  //       errorMessage = err.message || errorMessage;
+  //     }
+
+  //     alert(errorMessage);
+  //   } finally {
+  //     setDownloadingPDF(null);
+  //   }
+  // };
+
+  const handleDownloadPDF = async (summary) => {
+    try {
+      console.log("🖨️ Printing summary:", summary.summaryId);
+
+      const encodedId = encodeURIComponent(summary.summaryId);
+      const response = await axios.get(
+        `${API_URL}/discharge-slips/discharge-summary/${encodedId}/pdf`,
+        {
+          responseType: "blob",
+          timeout: 30000,
+        },
+      );
+
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      // Open in new window for printing
+      const printWindow = window.open(url);
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+
+      // Clean up after a delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+    } catch (err) {
+      console.error("❌ Error printing:", err);
+      alert("Failed to print PDF");
+    }
+  };
+
+  const statsConfig = [
+    {
+      label: "Total Summaries",
+      value: stats.totalSummaries,
+      icon: FileText,
+      color: "blue",
+      bgGradient: "from-blue-500 to-blue-600",
+    },
+    {
+      label: "Today's Summaries",
+      value: stats.todaySummaries,
+      icon: Calendar,
+      color: "green",
+      bgGradient: "from-green-500 to-green-600",
+    },
+    {
+      label: "Completed",
+      value: stats.completedSummaries,
+      icon: CheckCircle,
+      color: "purple",
+      bgGradient: "from-purple-500 to-purple-600",
+    },
+    {
+      label: "Pending",
+      value: stats.pendingSummaries,
+      icon: Clock,
+      color: "orange",
+      bgGradient: "from-orange-500 to-orange-600",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="mt-2 text-gray-600">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-bold text-gray-800">
+          Discharge Summary Dashboard
+        </h3>
+        <button
+          onClick={fetchDashboardData}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {statsConfig.map((stat, index) => (
+          <div
+            key={index}
+            className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
+          >
+            <div className={`bg-gradient-to-r ${stat.bgGradient} p-4`}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-white text-opacity-90 text-sm font-medium">
+                    {stat.label}
+                  </p>
+                  <p className="text-white text-3xl font-bold mt-2">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+            <div className="px-4 py-2 bg-gray-50">
+              <div className="flex items-center text-xs text-gray-600">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                <span>Updated just now</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4 border-b border-gray-200">
+          <h4 className="text-lg font-semibold text-gray-800">
+            Recent Discharge Summaries
+          </h4>
+          <p className="text-sm text-gray-600 mt-1">
+            Last 5 discharge summaries
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Summary ID
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Patient Name
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Age/Sex
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Diagnosis
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Procedure Date
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Status
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentSummaries.length > 0 ? (
+                recentSummaries.map((summary) => (
+                  <tr
+                    key={summary.summaryId}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-sm font-medium text-blue-600">
+                      {summary.summaryId}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-800 font-medium">
+                      {summary.patientName}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {summary.age}/{summary.sex}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {summary.diagnosis || "N/A"}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600">
+                      {summary.procedureDate || "N/A"}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                          summary.status === "Completed"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-orange-100 text-orange-700"
+                        }`}
+                      >
+                        {summary.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleView(summary.summaryId)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDownloadPDF(summary)}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors relative"
+                          title="Download PDF"
+                          disabled={downloadingPDF === summary.summaryId}
+                        >
+                          {downloadingPDF === summary.summaryId ? (
+                            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="py-8 text-center text-gray-500">
+                    No recent summaries found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Quick Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg p-4 border border-indigo-200">
+          <h5 className="text-sm font-semibold text-indigo-800 mb-2">
+            Completion Rate
+          </h5>
+          <p className="text-2xl font-bold text-indigo-900">
+            {stats.totalSummaries > 0
+              ? Math.round(
+                  (stats.completedSummaries / stats.totalSummaries) * 100,
+                )
+              : 0}
+            %
+          </p>
+          <p className="text-xs text-indigo-600 mt-1">
+            {stats.completedSummaries} of {stats.totalSummaries} summaries
+            completed
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-4 border border-amber-200">
+          <h5 className="text-sm font-semibold text-amber-800 mb-2">
+            Pending Rate
+          </h5>
+          <p className="text-2xl font-bold text-amber-900">
+            {stats.totalSummaries > 0
+              ? Math.round(
+                  (stats.pendingSummaries / stats.totalSummaries) * 100,
+                )
+              : 0}
+            %
+          </p>
+          <p className="text-xs text-amber-600 mt-1">
+            {stats.pendingSummaries} summaries awaiting completion
+          </p>
+        </div>
+
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+          <h5 className="text-sm font-semibold text-emerald-800 mb-2">
+            Today's Activity
+          </h5>
+          <p className="text-2xl font-bold text-emerald-900">
+            {stats.todaySummaries}
+          </p>
+          <p className="text-xs text-emerald-600 mt-1">
+            New summaries created today
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default SummaryDashboard;
