@@ -111,45 +111,43 @@ function AllTickets() {
   };
 
   // Replace handleView function (around line 800)
-const handleView = async (ticketId) => {
-  try {
-    console.log("👁️ Viewing ticket:", ticketId);
-    
-    // Use ticket data from existing list instead of API call
-    const ticket = tickets.find(t => t.ticketId === ticketId);
-    if (ticket) {
-      setSelectedTicket(ticket);
-      setShowViewModal(true);
-    } else {
-      alert("Ticket not found in local data");
-    }
-  } catch (err) {
-    console.error("❌ Error viewing ticket:", err);
-    alert("Failed to load ticket details");
-  }
-};
+  const handleView = async (ticketId) => {
+    try {
+      console.log("👁️ Viewing ticket:", ticketId);
 
-// Replace handleEdit function (around line 830)
-const handleEdit = async (ticketId) => {
-  try {
-    console.log("✏️ Editing ticket:", ticketId);
-    
-    // Use ticket data from existing list
-    const ticket = tickets.find(t => t.ticketId === ticketId);
-    if (ticket) {
-      setEditFormData(ticket);
-      setShowEditModal(true);
-    } else {
-      alert("Ticket not found for editing");
+      // Use ticket data from existing list instead of API call
+      const ticket = tickets.find((t) => t.ticketId === ticketId);
+      if (ticket) {
+        setSelectedTicket(ticket);
+        setShowViewModal(true);
+      } else {
+        alert("Ticket not found in local data");
+      }
+    } catch (err) {
+      console.error("❌ Error viewing ticket:", err);
+      alert("Failed to load ticket details");
     }
-  } catch (err) {
-    console.error("❌ Error editing ticket:", err);
-    alert("Failed to load ticket for editing");
-  }
-};
+  };
 
-  
-  
+  // Replace handleEdit function (around line 830)
+  const handleEdit = async (ticketId) => {
+    try {
+      console.log("✏️ Editing ticket:", ticketId);
+
+      // Use ticket data from existing list
+      const ticket = tickets.find((t) => t.ticketId === ticketId);
+      if (ticket) {
+        setEditFormData(ticket);
+        setShowEditModal(true);
+      } else {
+        alert("Ticket not found for editing");
+      }
+    } catch (err) {
+      console.error("❌ Error editing ticket:", err);
+      alert("Failed to load ticket for editing");
+    }
+  };
+
   const handleEditSuccess = () => {
     setShowEditModal(false);
     setEditFormData({});
@@ -202,7 +200,7 @@ const handleEdit = async (ticketId) => {
     setDownloadingPDF(ticket.ticketId);
 
     try {
-      console.log("📥 Downloading PDF for ticket:", ticket.ticketId);
+      console.log("📥 Fetching PDF for ticket:", ticket.ticketId);
 
       const response = await axios.get(
         `${API_URL}/api/discharge-slips/discharge-ticket/${encodeURIComponent(ticket.ticketId)}/pdf`,
@@ -213,26 +211,23 @@ const handleEdit = async (ticketId) => {
       );
 
       console.log("✅ PDF received from backend");
-      console.log("📦 Response type:", response.headers["content-type"]);
-      console.log("📦 Response size:", response.data.size, "bytes");
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `DischargeTicket-${ticket.ticketId.replace(/\//g, "-")}-${ticket.patientName.replace(/\s+/g, "_")}.pdf`;
 
-      document.body.appendChild(link);
-      link.click();
+      // Open PDF in new tab for preview (instead of direct download)
+      window.open(url, "_blank");
 
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      console.log("✅ PDF opened in new tab");
 
-      console.log("✅ PDF downloaded successfully");
+      // Optional: Auto-cleanup after some time
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 60000); // Clean up after 1 minute
     } catch (err) {
-      console.error("❌ Error downloading PDF:", err);
+      console.error("❌ Error loading PDF:", err);
 
-      let errorMessage = "Failed to download PDF";
+      let errorMessage = "Failed to load PDF";
 
       if (err.response) {
         if (err.response.data instanceof Blob) {
@@ -649,7 +644,7 @@ const handleEdit = async (ticketId) => {
           }}
           onSuccess={handleEditSuccess}
           updateLoading={updateLoading}
-          onEditChange={handleEditChange} 
+          onEditChange={handleEditChange}
         />
       )}
     </div>
