@@ -100,7 +100,7 @@ function TicketDashboard() {
     setDownloadingPDF(ticket.ticketId);
 
     try {
-      console.log("📥 Fetching PDF for ticket:", ticket.ticketId);
+      console.log("📥 Downloading PDF for ticket:", ticket.ticketId);
 
       const response = await axios.get(
         `${API_URL}/api/discharge-slips/discharge-ticket/${encodeURIComponent(ticket.ticketId)}/pdf`,
@@ -111,23 +111,26 @@ function TicketDashboard() {
       );
 
       console.log("✅ PDF received from backend");
+      console.log("📦 Response type:", response.headers["content-type"]);
+      console.log("📦 Response size:", response.data.size, "bytes");
 
       const blob = new Blob([response.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `DischargeTicket-${ticket.ticketId.replace(/\//g, "-")}-${ticket.patientName.replace(/\s+/g, "_")}.pdf`;
 
-      // Open PDF in new tab for preview (instead of direct download)
-      window.open(url, "_blank");
+      document.body.appendChild(link);
+      link.click();
 
-      console.log("✅ PDF opened in new tab");
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-      // Optional: Auto-cleanup after some time
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 60000); // Clean up after 1 minute
+      console.log("✅ PDF downloaded successfully");
     } catch (err) {
-      console.error("❌ Error loading PDF:", err);
+      console.error("❌ Error downloading PDF:", err);
 
-      let errorMessage = "Failed to load PDF";
+      let errorMessage = "Failed to download PDF";
 
       if (err.response) {
         if (err.response.data instanceof Blob) {
