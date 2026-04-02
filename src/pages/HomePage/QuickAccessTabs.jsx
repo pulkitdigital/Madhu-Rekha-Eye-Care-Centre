@@ -3,9 +3,9 @@ import { FileText, Scissors, Clipboard, Users, Settings } from 'lucide-react';
 function QuickAccessTabs({ setActivePage }) {
   const menuItems = [
     { id: 'discharge', label: 'Discharge Slips', icon: FileText },
-    { id: 'surgery', label: 'Surgery Slips', icon: Scissors },
-    { id: 'ot', label: 'O.T. Slips', icon: Clipboard },
-    { id: 'patients', label: 'Patients', icon: Users },
+    // { id: 'surgery', label: 'Surgery Slips', icon: Scissors },
+    // { id: 'ot', label: 'O.T. Slips', icon: Clipboard },
+    // { id: 'patients', label: 'Patients', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
